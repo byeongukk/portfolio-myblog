@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="Member">
+  	<resultMap type="com.home.myblog.member.model.vo.Member" id="memberResultSet">
+  		<id property="mNo" column="MNO"/>
+  		<result property="mId" column="MID"/>
+  		<result property="mPwd" column="MPWD"/>
+  		<result property="email" column="EMAIL"/>
+  		<result property="mStatus" column="M_STATUS"/>
+  		<result property="eCheck" column="EMAIL_CHECK"/>
+  		<result property="joinDate" column="JOIN_DATE"/>
+  	</resultMap>
+
+  
+	<select id="loginCheck" resultMap="memberResultSet" parameterType="Member">
+		SELECT *
+			FROM MEMBER
+		WHERE MID = #{mId}
+		AND MPWD = #{mPwd}
+		AND M_STATUS = 'Y'
+		
+	</select>
+	
+	<select id="duplicationCheckId" resultType="String" parameterType="String">
+		SELECT MID
+			FROM MEMBER
+		WHERE MID = #{mId}
+	</select>
+	
+	<insert id="memberJoin" parameterType="JoinRequest">
+		INSERT INTO MEMBER (MNO, MID, MPWD, EMAIL, M_STATUS,JOIN_DATE,EMAIL_CHECK)
+		VALUES(SEQ_MNO.NEXTVAL,#{mId},#{mPwd},#{email},default,sysdate,default)
+	</insert>
+	
+	<select id="selectEncPwd" resultType="String" parameterType="String">
+		SELECT MPWD
+			FROM MEMBER
+		WHERE MID = #{mId}
+	</select>
+	
+	<select id="selectMno" resultType="int" parameterType="String">
+		SELECT MNO
+			FROM MEMBER
+		WHERE MID =#{mId}
+	</select>
+	
+	<update id="updateEmailConfirm" parameterType="String">
+		UPDATE MEMBER SET EMAIL_CHECK='Y' WHERE MID = #{mId}
+	</update>
+	
+	<update id="insertEmailCode" parameterType="java.util.HashMap">
+		UPDATE MEMBER SET EMAIL_CODE=#{authkey} WHERE MID=#{mId}
+	</update>
+
+	<select id="selectEmailCodeCheck" resultMap="memberResultSet" parameterType="java.util.HashMap">
+		SELECT MID FROM MEMBER
+		WHERE MID = #{mId}
+		AND EMAIL_CODE = #{authkey}
+		AND EMAIL_CHECK = 'N'
+	</select>
+	
+	<select id="duplicationCheckEmail" resultType="String" parameterType="String">
+		SELECT EMAIL
+			FROM MEMBER
+		WHERE EMAIL = #{email}
+	</select>
+	
+	<!-- 로그인 성공시 log insert -->
+	<insert id="insertLoginSuccessLog" parameterType="LoginRequest">
+		INSERT INTO MEMBER_LOGIN_LOG(MLL_ID, MLL_SUCCESS, MNO, MLL_MID, MLL_DATETIME, MLL_IP, MLL_USERAGENT, MLL_URL)
+				VALUES(SEQ_MLL.NEXTVAL, 'Y', #{mNo}, #{mllMid}, sysdate, #{clIp}, #{clUserAgent}, #{clURL})
+	</insert>
+	
+	<!-- 로그인 실패시 log insert -->
+	<insert id="insertLoginFailLog" parameterType="LoginRequest">
+		INSERT INTO 
+		MEMBER_LOGIN_LOG
+		(
+		MLL_ID,
+		MLL_SUCCESS,
+		<!-- mno가 있을경우 입력 -->
+		<if test="mNo != 0">
+			MNO, 
+		</if>
+		MLL_MID, 
+		MLL_DATETIME, 
+		MLL_IP,
+		MLL_REASON, 
+		MLL_USERAGENT, 
+		MLL_URL
+		)
+		
+		VALUES
+		(
+		SEQ_MLL.NEXTVAL, 
+		'N', 
+		<!-- mno가 있을경우 입력 -->
+		<if test="mNo != 0">
+			#{mNo}, 
+		</if>
+		#{mllMid}, 
+		sysdate, 
+		#{clIp},
+		#{mllReason},
+		#{clUserAgent}, 
+		#{clURL}
+		)
+	</insert>
+	
+	
+	
+
+</mapper>

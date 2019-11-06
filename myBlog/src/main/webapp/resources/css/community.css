@@ -1,0 +1,16 @@
+@charset "UTF-8";
+
+.comment-insert{
+	margin-bottom: 5em;
+}
+
+@media only screen and (max-width: 630px) {
+	.comment{
+	  width:230px;
+      padding:0 5px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+	}
+	
+}
